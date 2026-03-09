@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 <head>
 <title>Mapa Catastro por Años</title>
@@ -12,16 +11,6 @@
 
 <style>
 
-#mapa{
-height:500px;
-border:2px solid #004bad;
-}
-
-.titulo{
-text-align:center;
-line-height:0.5;
-}
-
 .logo-manta{
 position:absolute;
 left:20px;
@@ -30,34 +19,21 @@ width:300px;
 z-index:1000;
 }
 
-/* PANEL HISTORICO */
+.titulo{
+text-align:center;
+line-height:0.5;
+}
 
 #controlTiempo{
 position:absolute;
 bottom:20px;
 left:50px;
 background:white;
-padding:15px;
-border-radius:10px;
-box-shadow:0 0 8px gray;
+padding:10px;
+border-radius:8px;
+box-shadow:0 0 5px gray;
 z-index:1000;
-width:220px;
-text-align:center;
 font-weight:bold;
-}
-
-/* CONTADOR */
-
-#contadorPredios{
-font-size:20px;
-margin-top:10px;
-animation: parpadeo 1s infinite;
-}
-
-@keyframes parpadeo{
-0%{opacity:1;}
-50%{opacity:0.3;}
-100%{opacity:1;}
 }
 
 /* BUSCADOR */
@@ -88,22 +64,18 @@ font-weight:bold;
 <img src="imagenmanta.png" class="logo-manta">
 </div>
 
-<div id="mapa"></div>
+<div id="mapa" style="width:100%; height:500px; border:2px solid #004bad;"></div>
 
 <div id="controlTiempo">
-
 Año: <span id="valorAnio">2019</span>
-
-<br><br>
-
-<input type="range" min="2019" max="2026" value="2019"
+<br>
+<input type="range" min="2019" max="2026" value="2019" step="1"
 oninput="actualizarAnio(this.value)">
-
-<div id="contadorPredios">
-287 PREDIOS
+<br>
+<span id="conteoPredios">2019 → 287 predios</span>
 </div>
 
-</div>
+<!-- BUSCADOR -->
 
 <div id="buscadorPredio">
 
@@ -117,65 +89,122 @@ Buscar Predio<br>
 
 <script>
 
-/* CONTADOR POR AÑO */
+// CAPAS BASE
 
-var conteoPredios={
-2019:287,
-2020:307,
-2021:1048,
-2022:339,
-2023:524,
-2024:793,
-2025:455,
-total:3753
-};
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
 
+var googleMaps = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
+maxZoom:20,
+subdomains:['mt0','mt1','mt2','mt3']
+});
 
-/* CAPAS BASE */
-
-var googleHybrid=L.tileLayer(
-'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{
+var googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{
 maxZoom:20,
 subdomains:['mt0','mt1','mt2','mt3'],
 opacity:0.6
 });
 
+// MAPA
 
-var map=L.map("mapa",{
+var map = L.map("mapa",{
 center:[-0.999491,-80.761089],
 zoom:14,
 layers:[googleHybrid],
 fullscreenControl:true
 });
 
+// CONTROL CAPAS BASE
 
-/* VARIABLES */
+var baseMaps = {
+"Open Street Maps": osm,
+"Google Maps": googleMaps,
+"Google Hybrid": googleHybrid
+};
 
-var capa2019,capa2020,capa2021,capa2022,capa2023,capa2024,capa2025;
+L.control.layers(baseMaps).addTo(map);
 
 
-/* FUNCION CREAR CAPA */
+// FUNCION CAPA CATASTRO
 
 function crearCapa(datos,relleno,contorno){
 
 return L.geoJson(datos,{
-style:{
+
+style:function(){
+return{
 color:contorno,
 weight:2,
 fillColor:relleno,
 fillOpacity:0.5
 }
+},
+
+onEachFeature: function (feature, capa){
+
+capa.bindPopup("<strong>Clave Catastral: </strong>"+ feature.properties['clavecatas'] + "<br>" +
+"<strong>Zona: </strong>"+ feature.properties['zona'] + "<br>" +
+"<strong>Sector: </strong>"+ feature.properties['sector']+ "<br>" +
+"<strong>Manzana: </strong>"+ feature.properties['manzana']+ "<br>" +
+"<strong>Lote: </strong>"+ feature.properties['lote'] + "<br>" +
+"<strong>Propietario: </strong>"+ feature.properties['propietari']+ "<br>" +
+"<strong>Cédula: </strong>"+ feature.properties['documentop']+ "<br>" +
+"<strong>Dirección: </strong>"+ feature.properties['direccion'] + "<br>" +
+"<strong>Área: </strong>"+ feature.properties['area_m2']+ "<br>" +
+"<strong>Zona: </strong>"+ feature.properties['zonaurbano']+ "<br>" +
+"<strong>Parroquia: </strong>"+ feature.properties['parroquia']+ "<br>" +
+"<strong>Observación: </strong>"+ feature.properties['observacio']
+);
+
+// MOUSE SOBRE PREDIO
+
+capa.on("mouseover",function(){
+
+map.dragging.disable();
+
+this.setStyle({
+color:'red',
+weight:4,
+fillOpacity:0.9
+});
+
+this.openPopup();
+
+});
+
+// SALIR DEL PREDIO
+
+capa.on("mouseout",function(){
+
+map.dragging.enable();
+
+this.setStyle({
+color:contorno,
+weight:2,
+fillColor:relleno,
+fillOpacity:0.5
+});
+
+this.closePopup();
+
+});
+
+}
+
 });
 
 }
 
 
-/* MOSTRAR CAPA */
+// VARIABLES
+
+var capa2019,capa2020,capa2021,capa2022,capa2023,capa2024,capa2025;
+
+
+// MOSTRAR CAPAS
 
 function mostrarCapa(anio){
 
-[capa2019,capa2020,capa2021,capa2022,capa2023,capa2024,capa2025]
-.forEach(function(c){
+[capa2019,capa2020,capa2021,capa2022,capa2023,capa2024,capa2025].forEach(function(c){
 
 if(c && map.hasLayer(c)){
 map.removeLayer(c);
@@ -183,46 +212,34 @@ map.removeLayer(c);
 
 });
 
-if(anio==2019) map.addLayer(capa2019);
-if(anio==2020) map.addLayer(capa2020);
-if(anio==2021) map.addLayer(capa2021);
-if(anio==2022) map.addLayer(capa2022);
-if(anio==2023) map.addLayer(capa2023);
-if(anio==2024) map.addLayer(capa2024);
-if(anio==2025) map.addLayer(capa2025);
+if(anio==2019 && capa2019) map.addLayer(capa2019);
+if(anio==2020 && capa2020) map.addLayer(capa2020);
+if(anio==2021 && capa2021) map.addLayer(capa2021);
+if(anio==2022 && capa2022) map.addLayer(capa2022);
+if(anio==2023 && capa2023) map.addLayer(capa2023);
+if(anio==2024 && capa2024) map.addLayer(capa2024);
+if(anio==2025 && capa2025) map.addLayer(capa2025);
 
 if(anio==2026){
 
-map.addLayer(capa2019);
-map.addLayer(capa2020);
-map.addLayer(capa2021);
-map.addLayer(capa2022);
-map.addLayer(capa2023);
-map.addLayer(capa2024);
-map.addLayer(capa2025);
+if(capa2019) map.addLayer(capa2019);
+if(capa2020) map.addLayer(capa2020);
+if(capa2021) map.addLayer(capa2021);
+if(capa2022) map.addLayer(capa2022);
+if(capa2023) map.addLayer(capa2023);
+if(capa2024) map.addLayer(capa2024);
+if(capa2025) map.addLayer(capa2025);
 
 }
 
 }
-
-
-/* ACTUALIZAR AÑO */
 
 function actualizarAnio(anio){
 
-var textoAnio=document.getElementById("valorAnio");
-var contador=document.getElementById("contadorPredios");
-
 if(anio==2026){
-
-textoAnio.innerHTML="TODOS";
-contador.innerHTML=conteoPredios.total+" PREDIOS";
-
+document.getElementById("valorAnio").innerHTML="TODOS";
 }else{
-
-textoAnio.innerHTML=anio;
-contador.innerHTML=conteoPredios[anio]+" PREDIOS";
-
+document.getElementById("valorAnio").innerHTML=anio;
 }
 
 mostrarCapa(anio);
@@ -230,34 +247,68 @@ mostrarCapa(anio);
 }
 
 
-/* CARGAR CAPAS */
+// CARGAR CAPAS
 
 function cargar(url,color,borde,variable){
 
 fetch(url)
 .then(r=>r.json())
 .then(data=>{
-
-window[variable]=crearCapa(data,color,borde);
+window[variable]=crearCapa(data,color,borde)
 
 if(variable=="capa2019"){
-map.addLayer(window[variable]);
+map.addLayer(window[variable])
+}
+
+})
+
+}
+
+cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2019.geojson","yellow","blue","capa2019")
+cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2020.geojson","violet","purple","capa2020")
+cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2021.geojson","blue	","orange","capa2021")
+cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2022.geojson","pink","red","capa2022")
+cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2023.geojson","cyan","darkblue","capa2023")
+cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2024.geojson","sandybrown","cyan","capa2024")
+cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2025.geojson","white","yellow","capa2025")
+
+
+// PARPADEO
+
+function activarParpadeo(){
+
+var estado=true;
+
+setInterval(function(){
+
+[capa2019,capa2020,capa2021,capa2022,capa2023,capa2024,capa2025].forEach(function(capa){
+
+if(capa){
+
+capa.eachLayer(function(layer){
+
+if(estado){
+layer.setStyle({fillOpacity:0.1,opacity:0.3});
+}else{
+layer.setStyle({fillOpacity:0.6,opacity:1});
 }
 
 });
 
 }
 
-cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2019.geojson","yellow","blue","capa2019");
-cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2020.geojson","violet","purple","capa2020");
-cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2021.geojson","orange","darkred","capa2021");
-cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2022.geojson","pink","red","capa2022");
-cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2023.geojson","cyan","darkblue","capa2023");
-cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2024.geojson","sandybrown","brown","capa2024");
-cargar("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/2025.geojson","white","yellow","capa2025");
+});
+
+estado=!estado;
+
+},300);
+
+}
+
+activarParpadeo();
 
 
-/* BUSCAR */
+// BUSCAR PREDIO
 
 function buscarPredio(){
 
@@ -291,6 +342,73 @@ layer.openPopup();
 });
 
 }
+
+
+// CAPAS ADMINISTRATIVAS
+
+function capaLimite(datos,color){
+
+return L.geoJson(datos,{
+style:{
+color:color,
+weight:3,
+fillOpacity:0
+}
+});
+
+}
+
+
+// LIMITE CANTONAL
+
+fetch("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/limite_cantonal.geojson")
+.then(r=>r.json())
+.then(data=>{
+capaLimite(data,"black").addTo(map);
+});
+
+
+// LIMITE BARRIAL
+
+fetch("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/limite_barrial.geojson")
+.then(r=>r.json())
+.then(data=>{
+capaLimite(data,"red").addTo(map);
+});
+
+
+// PARROQUIAS
+
+fetch("https://raw.githubusercontent.com/Antonio20252025/Catastro_Legalizacion/main/parroquias.geojson")
+.then(r=>r.json())
+.then(data=>{
+capaLimite(data,"blue").addTo(map);
+});
+
+
+// --------- AGREGADO PARA MOSTRAR CANTIDAD DE PREDIOS POR AÑO ---------
+
+var prediosPorAnio={
+2019:287,
+2020:307,
+2021:1048,
+2022:339,
+2023:524,
+2024:793,
+2025:455,
+2026:3753
+};
+
+var actualizarAnioOriginal = actualizarAnio;
+
+actualizarAnio=function(anio){
+  actualizarAnioOriginal(anio);
+  if(anio==2026){
+    document.getElementById("conteoPredios").innerHTML="TOTAL → 3753 Predios";
+  }else{
+    document.getElementById("conteoPredios").innerHTML=anio+" → "+prediosPorAnio[anio]+" Predios";
+  }
+};
 
 </script>
 
