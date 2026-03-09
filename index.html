@@ -408,12 +408,31 @@ actualizarAnio=function(anio){
   }
 };
 
+// ------------------ GEOLOCALIZACION ------------------
+
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    function(position){
+      var lat = position.coords.latitude;
+      var lon = position.coords.longitude;
+      
+      // Crear marcador de ubicación
+      var marcadorGPS = L.marker([lat, lon]).addTo(map)
+        .bindPopup("Tu ubicación actual")
+        .openPopup();
+      
+      // Centrar mapa en la ubicación
+      map.setView([lat, lon], 16);
+    },
+    function(error){
+      console.warn("No se pudo obtener la ubicación: ", error);
+    }
+  );
+} else {
+  console.warn("Geolocalización no soportada en este navegador");
+}
+
 </script>
 
 </body>
 </html>
-
-
-
-
-
