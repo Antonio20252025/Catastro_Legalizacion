@@ -41,7 +41,7 @@ font-weight:bold;
 #buscadorPredio{
 position:absolute;
 bottom:20px;
-right:40px;
+right:200px;
 background:white;
 padding:10px;
 border-radius:8px;
@@ -407,6 +407,32 @@ actualizarAnio=function(anio){
     document.getElementById("conteoPredios").innerHTML=anio+" → "+prediosPorAnio[anio]+" Predios";
   }
 };
+
+// ------------------ LEYENDA ------------------
+var leyenda = L.control({position: 'bottomright'});
+
+leyenda.onAdd = function(map){
+  var div = L.DomUtil.create('div','info legend');
+  div.style.background = 'white';
+  div.style.padding = '10px';
+  div.style.borderRadius = '8px';
+  div.style.boxShadow = '0 0 5px gray';
+  div.innerHTML = '<h4>Capas por Año</h4>';
+  
+  // Lista de años y colores de contorno
+  var años = [2019,2020,2021,2022,2023,2024,2025];
+  var colores = ['blue','purple','orange','red','cyan','Magenta','yellow'];
+  
+  for(var i=0; i<años.length; i++){
+    div.innerHTML +=
+      '<i style="background:'+colores[i]+'; width:18px; height:18px; display:inline-block; margin-right:5px;"></i> ' +
+      años[i] + '<br>';
+  }
+  
+  return div;
+}
+
+leyenda.addTo(map);
 
 // ------------------ GEOLOCALIZACION ------------------
 
