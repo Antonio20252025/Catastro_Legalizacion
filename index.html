@@ -254,10 +254,6 @@ fetch(url)
 .then(data=>{
 window[variable]=crearCapa(data,color,borde)
 
-if(variable=="capa2019"){
-map.addLayer(window[variable])
-}
-
 })
 
 }
@@ -314,6 +310,23 @@ var texto=document.getElementById("textoBuscar").value.toLowerCase();
 
 var capas=[capa2019,capa2020,capa2021,capa2022,capa2023,capa2024,capa2025];
 
+// RESTAURAR ESTILO ORIGINAL
+capas.forEach(function(capa){
+
+if(capa){
+
+capa.eachLayer(function(layer){
+
+capa.resetStyle(layer);
+
+});
+
+}
+
+});
+
+
+// BUSCAR PREDIO
 capas.forEach(function(capa){
 
 if(capa){
@@ -329,6 +342,14 @@ if(
 ){
 
 map.fitBounds(layer.getBounds());
+
+layer.setStyle({
+color:'red',
+weight:4,
+fillColor:'red',
+fillOpacity:0.9
+});
+
 layer.openPopup();
 
 }
@@ -340,7 +361,6 @@ layer.openPopup();
 });
 
 }
-
 
 // CAPAS ADMINISTRATIVAS
 
@@ -433,31 +453,253 @@ leyenda.onAdd = function(map){
 }
 
 leyenda.addTo(map);
+// -------- INVERTIR HISTÓRICO 2025 → 2019 SIN MODIFICAR CÓDIGO ORIGINAL --------
 
-// ------------------ GEOLOCALIZACION ------------------
+// obtener el slider
+var sliderTiempo = document.querySelector("#controlTiempo input");
 
-if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(
-    function(position){
-      var lat = position.coords.latitude;
-      var lon = position.coords.longitude;
-      
-      // Crear marcador de ubicación
-      var marcadorGPS = L.marker([lat, lon]).addTo(map)
-        .bindPopup("Tu ubicación actual")
-        .openPopup();
-      
-      // Centrar mapa en la ubicación
-      map.setView([lat, lon], 16);
-    },
-    function(error){
-      console.warn("No se pudo obtener la ubicación: ", error);
-    }
-  );
-} else {
-  console.warn("Geolocalización no soportada en este navegador");
+// invertir rango
+sliderTiempo.min = 2019;
+sliderTiempo.max = 2025;
+sliderTiempo.step = 1;
+sliderTiempo.value = 2025;
+
+// cambiar comportamiento del control
+sliderTiempo.oninput = function(){
+
+var anio = parseInt(this.value);
+
+// invertir visualmente el año
+var anioInvertido = 2025 - (anio - 2019);
+
+// actualizar etiqueta
+document.getElementById("valorAnio").innerHTML = anioInvertido;
+
+// mostrar capa
+mostrarCapa(anioInvertido);
+
+};
+
+// -------- CONTROL HISTORICO PERSONALIZADO --------
+
+// obtener slider
+var slider = document.querySelector("#controlTiempo input");
+
+// cambiar rango del control
+slider.min = 0;
+slider.max = 8;
+slider.step = 1;
+slider.value = 0;
+
+// función personalizada
+slider.oninput = function(){
+
+var v = parseInt(this.value);
+
+// quitar capas
+[capa2019,capa2020,capa2021,capa2022,capa2023,capa2024,capa2025].forEach(function(c){
+if(c && map.hasLayer(c)){
+map.removeLayer(c);
+}
+});
+
+// POSICION 0 → SIN DATOS
+if(v==0){
+document.getElementById("valorAnio").innerHTML="";
+document.getElementById("conteoPredios").innerHTML="Mover barra para iniciar";
 }
 
+// 2025
+if(v==1){
+document.getElementById("valorAnio").innerHTML="2025";
+mostrarCapa(2025);
+}
+
+// 2024
+if(v==2){
+document.getElementById("valorAnio").innerHTML="2024";
+mostrarCapa(2024);
+}
+
+// 2023
+if(v==3){
+document.getElementById("valorAnio").innerHTML="2023";
+mostrarCapa(2023);
+}
+
+// 2022
+if(v==4){
+document.getElementById("valorAnio").innerHTML="2022";
+mostrarCapa(2022);
+}
+
+// 2021
+if(v==5){
+document.getElementById("valorAnio").innerHTML="2021";
+mostrarCapa(2021);
+}
+
+// 2020
+if(v==6){
+document.getElementById("valorAnio").innerHTML="2020";
+mostrarCapa(2020);
+}
+
+// 2019
+if(v==7){
+document.getElementById("valorAnio").innerHTML="2019";
+mostrarCapa(2019);
+}
+
+// TODOS LOS AÑOS
+if(v==8){
+
+if(capa2019) map.addLayer(capa2019);
+if(capa2020) map.addLayer(capa2020);
+if(capa2021) map.addLayer(capa2021);
+if(capa2022) map.addLayer(capa2022);
+if(capa2023) map.addLayer(capa2023);
+if(capa2024) map.addLayer(capa2024);
+if(capa2025) map.addLayer(capa2025);
+
+document.getElementById("valorAnio").innerHTML="TODOS";
+document.getElementById("conteoPredios").innerHTML="TOTAL → 3753 Predios";
+
+}
+
+};
+// ================= CONTROL HISTORICO FINAL =================
+
+// obtener slider original
+var slider = document.querySelector("#controlTiempo input");
+
+// redefinir rango
+slider.min = 0;
+slider.max = 8;
+slider.step = 1;
+slider.value = 0;
+
+
+// iniciar mapa en blanco
+window.addEventListener("load", function(){
+
+[capa2019,capa2020,capa2021,capa2022,capa2023,capa2024,capa2025].forEach(function(c){
+
+if(c && map.hasLayer(c)){
+map.removeLayer(c);
+}
+
+});
+
+document.getElementById("valorAnio").innerHTML="";
+document.getElementById("conteoPredios").innerHTML="Mover barra para iniciar";
+
+});
+
+// comportamiento del slider
+slider.oninput=function(){
+
+var v=parseInt(this.value);
+
+// quitar todas las capas
+[capa2019,capa2020,capa2021,capa2022,capa2023,capa2024,capa2025].forEach(function(c){
+if(c && map.hasLayer(c)){
+map.removeLayer(c);
+}
+});
+
+
+// SIN DATOS
+if(v==0){
+
+document.getElementById("valorAnio").innerHTML="";
+document.getElementById("conteoPredios").innerHTML="Mover barra para iniciar";
+
+}
+
+
+// 2025
+if(v==1){
+document.getElementById("valorAnio").innerHTML="2025";
+mostrarCapa(2025);
+document.getElementById("conteoPredios").innerHTML="2025 → "+prediosPorAnio[2025]+" Predios";
+}
+
+
+// 2024
+if(v==2){
+document.getElementById("valorAnio").innerHTML="2024";
+mostrarCapa(2024);
+document.getElementById("conteoPredios").innerHTML="2024 → "+prediosPorAnio[2024]+" Predios";
+}
+
+
+// 2023
+if(v==3){
+document.getElementById("valorAnio").innerHTML="2023";
+mostrarCapa(2023);
+document.getElementById("conteoPredios").innerHTML="2023 → "+prediosPorAnio[2023]+" Predios";
+}
+
+
+// 2022
+if(v==4){
+document.getElementById("valorAnio").innerHTML="2022";
+mostrarCapa(2022);
+document.getElementById("conteoPredios").innerHTML="2022 → "+prediosPorAnio[2022]+" Predios";
+}
+
+
+// 2021
+if(v==5){
+document.getElementById("valorAnio").innerHTML="2021";
+mostrarCapa(2021);
+document.getElementById("conteoPredios").innerHTML="2021 → "+prediosPorAnio[2021]+" Predios";
+}
+
+
+// 2020
+if(v==6){
+document.getElementById("valorAnio").innerHTML="2020";
+mostrarCapa(2020);
+document.getElementById("conteoPredios").innerHTML="2020 → "+prediosPorAnio[2020]+" Predios";
+}
+
+
+// 2019
+if(v==7){
+document.getElementById("valorAnio").innerHTML="2019";
+mostrarCapa(2019);
+document.getElementById("conteoPredios").innerHTML="2019 → "+prediosPorAnio[2019]+" Predios";
+}
+
+
+// TODOS LOS AÑOS
+if(v==8){
+
+if(capa2019) map.addLayer(capa2019);
+if(capa2020) map.addLayer(capa2020);
+if(capa2021) map.addLayer(capa2021);
+if(capa2022) map.addLayer(capa2022);
+if(capa2023) map.addLayer(capa2023);
+if(capa2024) map.addLayer(capa2024);
+if(capa2025) map.addLayer(capa2025);
+
+document.getElementById("valorAnio").innerHTML="TODOS";
+document.getElementById("conteoPredios").innerHTML="TOTAL → "+prediosPorAnio[2026]+" Predios";
+
+}
+
+};
+
+// BUSCAR CON ENTER
+document.getElementById("textoBuscar").addEventListener("keypress",function(e){
+
+if(e.key==="Enter"){
+buscarPredio();
+}
+
+});
 </script>
 
 </body>
