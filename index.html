@@ -3,6 +3,9 @@
 <title>Mapa Catastro por Años</title>
 <meta charset="UTF-8">
 
+<!-- RESPONSIVE -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -11,29 +14,50 @@
 
 <style>
 
+body{
+background:#d2e2f7;
+margin:10px;
+font-family:Arial;
+}
+
+/* LOGO */
+
 .logo-manta{
 position:absolute;
 left:20px;
 top:10px;
-width:150px;
+width:130px;
 z-index:1000;
 }
 
+/* TITULO */
+
 .titulo{
 text-align:center;
-line-height:0.5;
+line-height:1.2;
 }
+
+/* MAPA RESPONSIVO */
+
+#mapa{
+width:100%;
+height:70vh;
+border:2px solid #004bad;
+}
+
+/* CONTROL HISTORICO */
 
 #controlTiempo{
 position:absolute;
 bottom:20px;
-left:50px;
+left:20px;
 background:white;
 padding:10px;
 border-radius:8px;
 box-shadow:0 0 5px gray;
 z-index:1000;
 font-weight:bold;
+max-width:260px;
 }
 
 /* BUSCADOR */
@@ -41,19 +65,77 @@ font-weight:bold;
 #buscadorPredio{
 position:absolute;
 bottom:20px;
-right:200px;
+right:20px;
 background:white;
 padding:10px;
 border-radius:8px;
 box-shadow:0 0 5px gray;
 z-index:1000;
 font-weight:bold;
+max-width:260px;
+}
+
+#buscadorPredio input{
+width:100%;
+margin-top:5px;
+}
+
+#buscadorPredio button{
+margin-top:5px;
+width:100%;
+}
+
+/* SLIDER */
+
+#controlTiempo input{
+width:100%;
+}
+
+/* LEYENDA */
+
+.legend{
+font-size:12px;
+}
+
+/* ===== CELULARES ===== */
+
+@media (max-width:768px){
+
+.logo-manta{
+width:90px;
+left:10px;
+}
+
+h4{
+font-size:12px;
+}
+
+#mapa{
+height:65vh;
+}
+
+#controlTiempo{
+left:10px;
+bottom:10px;
+font-size:12px;
+padding:8px;
+max-width:180px;
+}
+
+#buscadorPredio{
+right:10px;
+bottom:10px;
+font-size:12px;
+padding:8px;
+max-width:180px;
+}
+
 }
 
 </style>
 </head>
 
-<body style="background:#d2e2f7; margin:20px;">
+<body>
 
 <div class="titulo">
 <h4>GOBIERNO AUTÓNOMO DESCENTRALIZADO DEL CANTÓN MANTA</h4>
@@ -62,7 +144,7 @@ font-weight:bold;
 <img src="imagenmanta.png" class="logo-manta">
 </div>
 
-<div id="mapa" style="width:100%; height:650px; border:2px solid #004bad;"></div>
+<div id="mapa"></div>
 
 <div id="controlTiempo">
 Año: <span id="valorAnio">2019</span>
@@ -72,8 +154,6 @@ oninput="actualizarAnio(this.value)">
 <br>
 <span id="conteoPredios">2019 → 287 predios</span>
 </div>
-
-<!-- BUSCADOR -->
 
 <div id="buscadorPredio">
 
@@ -87,6 +167,8 @@ Buscar Predio<br>
 
 <script>
 
+/* TODO TU SCRIPT ORIGINAL VA AQUÍ
+NO SE MODIFICA NADA */
 // CAPAS BASE
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
@@ -438,6 +520,7 @@ leyenda.onAdd = function(map){
   div.style.borderRadius = '8px';
   div.style.boxShadow = '0 0 5px gray';
   div.innerHTML = '<h3>Simbología</h3>';
+  
   // Lista de años y colores de contorno
   var años = [2019,2020,2021,2022,2023,2024,2025];
   var colores = ['blue','purple','orange','red','cyan','Magenta','yellow'];
@@ -699,13 +782,8 @@ buscarPredio();
 }
 
 });
+
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
