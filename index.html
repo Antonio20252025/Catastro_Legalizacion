@@ -331,12 +331,20 @@ mostrarCapa(anio);
 
 function cargar(url,color,borde,variable){
 
-fetch(url)
-.then(r=>r.json())
-.then(data=>{
-window[variable]=crearCapa(data,color,borde)
-
+fetch(url, {
+  credentials: "include",   // 🔐 necesario para Firefox
+  cache: "no-store"         // 🚫 evita problemas de caché
 })
+.then(r=>{
+  if(!r.ok) throw new Error("Error cargando datos");
+  return r.json();
+})
+.then(data=>{
+  window[variable]=crearCapa(data,color,borde)
+})
+.catch(err=>{
+  console.error("Error en fetch:", err);
+});
 
 }
 
